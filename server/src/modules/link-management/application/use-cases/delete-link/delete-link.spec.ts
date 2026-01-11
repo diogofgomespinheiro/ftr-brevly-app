@@ -29,7 +29,7 @@ describe('Delete Link Use Case', () => {
     expect(result.getErrorValue()).toBeInstanceOf(EntityValidationError);
   });
 
-  it('should return an ResourceNotFoundError if the link does not exist', async () => {
+  it('should return a ResourceNotFoundError if the link does not exist', async () => {
     const result = await sut.execute({
       shortCode: 'my-link',
     });
@@ -75,5 +75,17 @@ describe('Delete Link Use Case', () => {
 
     expect(result.isSuccess).toBe(true);
     expect(inMemoryLinksRepository.items).toHaveLength(0);
+  });
+
+  it('should be able to delete an existing link when multiple links exists', async () => {
+    const existingLink = await linksFactory.makeInMemoryLink();
+    await linksFactory.makeMultipleInMemoryLinks(5);
+
+    const result = await sut.execute({
+      shortCode: existingLink.shortCode.value,
+    });
+
+    expect(result.isSuccess).toBe(true);
+    expect(inMemoryLinksRepository.items).toHaveLength(5);
   });
 });

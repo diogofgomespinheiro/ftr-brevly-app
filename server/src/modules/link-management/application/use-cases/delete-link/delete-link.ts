@@ -41,7 +41,7 @@ export class DeleteLinkUseCase
         return Result.fail(new ResourceNotFoundError());
       }
 
-      await this.linksRepository.delete(shortCode.getValue().value);
+      await this.linksRepository.delete(existingLink.shortCode.value);
       return Result.ok();
     } catch (error) {
       console.error(error);
