@@ -7,17 +7,17 @@ import {
 } from '@/core/application/use-cases/errors';
 import { LinksFactory } from '@/test/factories';
 import { InMemoryLinksRepository } from '@/test/repositories';
-import { DeleteLinkUseCase } from './delete-link';
+import { FindLinkByShortCodeUseCase } from './find-link-by-short-code';
 
 let inMemoryLinksRepository: InMemoryLinksRepository;
 let linksFactory: LinksFactory;
-let sut: DeleteLinkUseCase;
+let sut: FindLinkByShortCodeUseCase;
 
-describe('Delete Link Use Case', () => {
+describe('Find Link By Short Code Use Case', () => {
   beforeEach(() => {
     inMemoryLinksRepository = new InMemoryLinksRepository();
     linksFactory = new LinksFactory(inMemoryLinksRepository);
-    sut = new DeleteLinkUseCase(inMemoryLinksRepository);
+    sut = new FindLinkByShortCodeUseCase(inMemoryLinksRepository);
   });
 
   it('should return an EntityValidationError if the short code is not valid', async () => {
@@ -51,22 +51,7 @@ describe('Delete Link Use Case', () => {
     expect(result.getErrorValue()).toBeInstanceOf(UnexpectedError);
   });
 
-  it('should return an UnexpectedError when repository throws on delete', async () => {
-    const existingLink = await linksFactory.makeInMemoryLink();
-    vi.spyOn(inMemoryLinksRepository, 'delete').mockRejectedValue(
-      new Error('Database error')
-    );
-
-    const result = await sut.execute({
-      shortCode: existingLink.shortCode.value,
-    });
-
-    expect(result.isFailure).toBe(true);
-    expect(result.getErrorValue()).toBeInstanceOf(UnexpectedError);
-    expect(inMemoryLinksRepository.items).toHaveLength(1);
-  });
-
-  it('should be able to delete an existing link', async () => {
+  it('should be able to find an existing link', async () => {
     const existingLink = await linksFactory.makeInMemoryLink();
 
     const result = await sut.execute({
@@ -74,10 +59,12 @@ describe('Delete Link Use Case', () => {
     });
 
     expect(result.isSuccess).toBe(true);
-    expect(inMemoryLinksRepository.items).toHaveLength(0);
+    expect(result.getValue().link.id.toString()).toBe(
+      existingLink.id.toString()
+    );
   });
 
-  it('should be able to delete an existing link when multiple links exist', async () => {
+  it('should be able to find an existing link when multiple links exist', async () => {
     const existingLink = await linksFactory.makeInMemoryLink();
     await linksFactory.makeMultipleInMemoryLinks(5);
 
@@ -86,6 +73,8 @@ describe('Delete Link Use Case', () => {
     });
 
     expect(result.isSuccess).toBe(true);
-    expect(inMemoryLinksRepository.items).toHaveLength(5);
+    expect(result.getValue().link.id.toString()).toBe(
+      existingLink.id.toString()
+    );
   });
 });
