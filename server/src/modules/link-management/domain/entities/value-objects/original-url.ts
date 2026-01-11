@@ -1,78 +1,100 @@
-import { ValueObject } from '@/core/domain';
-import { Result } from '@/core/shared';
+import { ValueObject } from "@/core/domain";
+import { Result } from "@/core/shared";
 
 interface OriginalUrlProps {
-  value: string;
+	value: string;
 }
 
 export class OriginalUrl extends ValueObject<OriginalUrlProps> {
-  private static readonly MAX_LENGTH = 2048;
-  private static readonly ALLOWED_PROTOCOLS = ['http:', 'https:'];
+	private static readonly MAX_LENGTH = 2048;
+	private static readonly ALLOWED_PROTOCOLS = ["http:", "https:"];
 
-  get value(): string {
-    return this.props.value;
-  }
+	get value(): string {
+		return this.props.value;
+	}
 
-  private constructor(props: OriginalUrlProps) {
-    super(props);
-  }
+	private constructor(props: OriginalUrlProps) {
+		super(props);
+	}
 
-  public static create(url: string): Result<InvalidUrlError, OriginalUrl> {
-    if (!OriginalUrl.isValid(url)) {
-      return Result.fail(new InvalidUrlError(url));
-    }
+	public static create(url: string): Result<InvalidUrlError, OriginalUrl> {
+		const { isValid, reason = "" } = OriginalUrl.validate(url);
 
-    return Result.ok(new OriginalUrl({ value: OriginalUrl.normalize(url) }));
-  }
+		if (!isValid) {
+			return Result.fail(new InvalidUrlError(url, reason));
+		}
 
-  private static isValid(value: string): boolean {
-    if (!value || value.trim().length === 0) {
-      return false;
-    }
+		return Result.ok(new OriginalUrl({ value: OriginalUrl.normalize(url) }));
+	}
 
-    try {
-      const trimmedValue = value.trim();
+	private static validate(value: string): {
+		isValid: boolean;
+		reason?: string;
+	} {
+		if (!value || value.trim().length === 0) {
+			return { isValid: false, reason: "URL cannot be empty." };
+		}
 
-      const hasWhiteSpaces = /\s/.test(trimmedValue);
-      if (hasWhiteSpaces) return false;
+		try {
+			const trimmedValue = value.trim();
 
-      const exceedsMaxLength = trimmedValue.length > OriginalUrl.MAX_LENGTH;
-      if (exceedsMaxLength) return false;
+			const hasWhiteSpaces = /\s/.test(trimmedValue);
+			if (hasWhiteSpaces)
+				return { isValid: false, reason: "URL cannot contain white spaces." };
 
-      const url = new URL(trimmedValue);
-      const hasValidProtocol = OriginalUrl.ALLOWED_PROTOCOLS.includes(
-        url.protocol
-      );
-      if (!hasValidProtocol) return false;
+			const exceedsMaxLength = trimmedValue.length > OriginalUrl.MAX_LENGTH;
+			if (exceedsMaxLength)
+				return {
+					isValid: false,
+					reason: `URL cannot exceed the max length of ${OriginalUrl.MAX_LENGTH}.`,
+				};
 
-      const hostnameExists = url.hostname || url.hostname.length === 0;
-      if (!hostnameExists) return false;
+			const url = new URL(trimmedValue);
+			const hasValidProtocol = OriginalUrl.ALLOWED_PROTOCOLS.includes(
+				url.protocol,
+			);
+			if (!hasValidProtocol)
+				return {
+					isValid: false,
+					reason: "URL must contain a valid protocol.",
+				};
 
-      const isValidHostname =
-        url.hostname.includes('.') && url.hostname !== 'localhost';
-      if (!isValidHostname) return false;
+			const hostnameExists = url.hostname || url.hostname.length === 0;
+			if (!hostnameExists)
+				return { isValid: false, reason: "URL must contain a hostname." };
 
-      return true;
-    } catch {
-      return false;
-    }
-  }
+			const isValidHostname =
+				url.hostname.includes(".") && url.hostname !== "localhost";
+			if (!isValidHostname)
+				return {
+					isValid: false,
+					reason: "URL must contain a valid hostname.",
+				};
 
-  public static normalize(value: string): string {
-    const trimmedUrl = value.trim();
-    const url = new URL(trimmedUrl);
+			return { isValid: true };
+		} catch {
+			return {
+				isValid: false,
+				reason: "URL is not valid.",
+			};
+		}
+	}
 
-    if (url.pathname === '/' && !url.search && !url.hash) {
-      return trimmedUrl.replace(/\/$/, '');
-    }
+	public static normalize(value: string): string {
+		const trimmedUrl = value.trim();
+		const url = new URL(trimmedUrl);
 
-    return trimmedUrl;
-  }
+		if (url.pathname === "/" && !url.search && !url.hash) {
+			return trimmedUrl.replace(/\/$/, "");
+		}
+
+		return trimmedUrl;
+	}
 }
 
 export class InvalidUrlError extends Error {
-  constructor(value: string) {
-    super(`Invalid url: ${value}`);
-    this.name = 'InvalidUrlError';
-  }
+	constructor(value: string, reason: string) {
+		super(`Invalid url: ${value}`, { cause: reason });
+		this.name = "InvalidUrlError";
+	}
 }
