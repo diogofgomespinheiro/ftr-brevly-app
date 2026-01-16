@@ -16,6 +16,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "moduleResolution": "bundler",
+    "baseUrl": ".",
     "paths": {
       "@/core/*": [
         "./src/core/*"
@@ -31,7 +32,17 @@
       ]
     },
     "types": [
+      "node",
       "vitest/globals"
     ]
-  }
+  },
+  "include": [
+    "src/**/*",
+    "test/**/*",
+    "drizzle.config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }
