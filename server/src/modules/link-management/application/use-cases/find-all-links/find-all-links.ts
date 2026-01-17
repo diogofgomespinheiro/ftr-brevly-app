@@ -26,8 +26,7 @@ export class FindAllLinksUseCase
     try {
       const links = await this.linksRepository.findMany();
       return Result.ok({ links });
-    } catch (error) {
-      console.error(error);
+    } catch {
       return Result.fail(new UnexpectedError());
     }
   }

@@ -7,4 +7,5 @@ export interface LinksRepository {
   findMany(): Promise<Link[]>;
   delete(shortCode: string): Promise<void>;
   update(link: Link): Promise<void>;
+  createExportStream(): AsyncIterable<Link>;
 }

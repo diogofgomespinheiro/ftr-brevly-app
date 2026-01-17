@@ -49,8 +49,7 @@ export class IncrementLinkAccessCountUseCase
       await this.linksRepository.update(existingLink);
 
       return Result.ok();
-    } catch (error) {
-      console.error(error);
+    } catch {
       return Result.fail(new UnexpectedError());
     }
   }

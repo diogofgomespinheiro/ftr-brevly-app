@@ -62,8 +62,7 @@ export class CreateLinkUseCase
       );
 
       return Result.ok();
-    } catch (error) {
-      console.error(error);
+    } catch {
       return Result.fail(new UnexpectedError());
     }
   }

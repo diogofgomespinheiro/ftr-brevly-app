@@ -2,8 +2,9 @@ import { eq } from 'drizzle-orm';
 
 import type { LinksRepository } from '@/link-management/application/repositories';
 import type { Link } from '@/link-management/domain/entities';
-import { db } from '@/shared/infra/database/drizzle/config';
+import { db, pg } from '@/shared/infra/database/drizzle/config';
 import { schema } from '@/shared/infra/database/drizzle/config/schemas';
+import type { DrizzleLink } from '@/shared/infra/database/drizzle/config/schemas/links';
 import { DrizzleLinksMapper } from '@/shared/infra/database/drizzle/mappers';
 
 export class DrizzleLinksRepository implements LinksRepository {
@@ -49,5 +50,17 @@ export class DrizzleLinksRepository implements LinksRepository {
       .update(schema.linksTable)
       .set(DrizzleLinksMapper.toDrizzle(link))
       .where(eq(schema.linksTable.id, link.id.toString()));
+  }
+
+  async *createExportStream(): AsyncIterable<Link> {
+    const { sql, params } = db.select().from(schema.linksTable).toSQL();
+
+    const cursor = pg.unsafe<DrizzleLink[]>(sql, params as string[]).cursor(2);
+
+    for await (const rows of cursor) {
+      for (const row of rows) {
+        yield DrizzleLinksMapper.toDomain(row);
+      }
+    }
   }
 }

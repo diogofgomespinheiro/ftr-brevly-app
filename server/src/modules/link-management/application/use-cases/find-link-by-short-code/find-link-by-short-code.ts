@@ -48,8 +48,7 @@ export class FindLinkByShortCodeUseCase
       }
 
       return Result.ok({ link: existingLink });
-    } catch (error) {
-      console.error(error);
+    } catch {
       return Result.fail(new UnexpectedError());
     }
   }

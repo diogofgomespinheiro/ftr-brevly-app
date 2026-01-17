@@ -31,4 +31,10 @@ export class InMemoryLinksRepository implements LinksRepository {
     const itemIndex = this.items.findIndex(item => item.id.equals(link.id));
     this.items[itemIndex] = link;
   }
+
+  async *createExportStream(): AsyncIterable<Link> {
+    for (const link of this.items) {
+      yield link;
+    }
+  }
 }
