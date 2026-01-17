@@ -1,10 +1,10 @@
-import { eq } from 'drizzle-orm';
+import { asc, eq } from 'drizzle-orm';
 
 import type { LinksRepository } from '@/link-management/application/repositories';
 import type { Link } from '@/link-management/domain/entities';
 import { db, pg } from '@/shared/infra/database/drizzle/config';
 import { schema } from '@/shared/infra/database/drizzle/config/schemas';
-import type { DrizzleLink } from '@/shared/infra/database/drizzle/config/schemas/links';
+import type { DrizzleLinkRaw } from '@/shared/infra/database/drizzle/config/schemas/links';
 import { DrizzleLinksMapper } from '@/shared/infra/database/drizzle/mappers';
 
 export class DrizzleLinksRepository implements LinksRepository {
@@ -53,13 +53,19 @@ export class DrizzleLinksRepository implements LinksRepository {
   }
 
   async *createExportStream(): AsyncIterable<Link> {
-    const { sql, params } = db.select().from(schema.linksTable).toSQL();
+    const { sql, params } = db
+      .select()
+      .from(schema.linksTable)
+      .orderBy(asc(schema.linksTable.id))
+      .toSQL();
 
-    const cursor = pg.unsafe<DrizzleLink[]>(sql, params as string[]).cursor(2);
+    const cursor = pg
+      .unsafe<DrizzleLinkRaw[]>(sql, params as string[])
+      .cursor(2);
 
     for await (const rows of cursor) {
       for (const row of rows) {
-        yield DrizzleLinksMapper.toDomain(row);
+        yield DrizzleLinksMapper.toDomainFromRaw(row);
       }
     }
   }

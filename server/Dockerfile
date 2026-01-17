@@ -1,24 +1,39 @@
-FROM node:22-alpine AS dependencies
+FROM node:22-alpine AS base
+
+RUN npm i -g pnpm
+
+FROM base AS dependencies
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY package.json ./
+COPY pnpm-*.yaml ./
 
-RUN npm ci --only=production && npm cache clean --force
+RUN pnpm install
+
+FROM base AS build
+
+WORKDIR /app
+
+COPY . .
+COPY --from=dependencies /app/node_modules ./node_modules
+
+RUN pnpm build
+RUN pnpm prune --prod
 
 FROM node:22-alpine AS runner
 
+USER 1000
+
 WORKDIR /app
 
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package.json ./
 
-COPY --from=dependencies /app/node_modules ./node_modules
+EXPOSE 3333
 
-COPY --chown=nodejs:nodejs . .
+ENV PORT=3333
+ENV HOSTNAME="0.0.0.0"
 
-USER nodejs
-
-EXPOSE 3000
-
-CMD ["npm", "run", "start"]
+CMD ["npm", "start"]

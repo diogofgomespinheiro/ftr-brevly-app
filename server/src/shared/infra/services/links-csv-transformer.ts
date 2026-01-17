@@ -32,7 +32,7 @@ export class LinksCsvTransformer implements CsvTransformerService {
         shortCode: link.shortCode.value,
         originalUrl: link.originalUrl.value,
         accessCount: link.accessCount,
-        createdAt: link.createdAt.toISOString(),
+        createdAt: link.createdAt.toString(),
         updatedAt: link.updatedAt?.toString(),
       };
     }

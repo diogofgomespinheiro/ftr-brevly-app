@@ -1,0 +1,53 @@
+name: ftr-rocketseat-brevly-server
+services:
+  database:
+    image: bitnami/postgresql:latest
+    container_name: postgres-database
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      - POSTGRES_USER=$DATABASE_USER
+      - POSTGRES_PASSWORD=$DATABASE_PASSWORD
+      - POSTGRES_DB=$DATABASE_NAME
+    ports:
+      - "5432:5432"
+    volumes:
+      - "./docker/postgres:/docker-entrypoint-initdb.d"
+      - "postgres_data:/bitnami/postgresql"
+    networks:
+      - brevly-server-network
+      - database-network
+
+  app:
+    build: .
+    container_name: brevly-server
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+    ports:
+      - 3333:$PORT
+    environment:
+      - PORT=$PORT
+      - NODE_ENV=$NODE_ENV
+      - DATABASE_URL=$DATABASE_URL
+      - CLOUDFLARE_ACCESS_KEY_ID=$CLOUDFLARE_ACCESS_KEY_ID
+      - CLOUDFLARE_SECRET_ACCESS_KEY=$CLOUDFLARE_SECRET_ACCESS_KEY
+      - CLOUDFLARE_BUCKET_NAME=$CLOUDFLARE_BUCKET_NAME
+      - CLOUDFLARE_ACCOUNT_ID=$CLOUDFLARE_ACCOUNT_ID
+      - CLOUDFLARE_PUBLIC_URL=$CLOUDFLARE_PUBLIC_URL
+    networks:
+      - brevly-server-network
+
+volumes:
+  postgres_data:
+    driver: local
+networks:
+  brevly-server-network:
+    driver: bridge
+  database-network:
+    driver: bridge

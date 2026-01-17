@@ -14,3 +14,11 @@ export const linksTable = pgTable('links', {
 });
 
 export type DrizzleLink = InferSelectModel<typeof linksTable>;
+export type DrizzleLinkRaw = {
+  id: string;
+  original_url: string;
+  short_code: string;
+  access_count: number | null;
+  created_at: Date;
+  updated_at: Date | null;
+};
