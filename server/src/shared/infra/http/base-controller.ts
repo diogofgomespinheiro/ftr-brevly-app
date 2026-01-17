@@ -38,11 +38,12 @@ export abstract class BaseController {
     return reply.status(status).send({
       success: false,
       error: {
-        message: error.toString(),
+        type: error.toString(),
         ...(!cause
-          ? { cause: '' }
+          ? { message: '' }
           : {
-              cause: typeof cause === 'object' ? JSON.stringify(cause) : cause,
+              message:
+                typeof cause === 'object' ? JSON.stringify(cause) : cause,
             }),
       },
     });

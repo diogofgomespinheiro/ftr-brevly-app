@@ -3,8 +3,8 @@ import z from 'zod';
 export const errorResponseSchema = z.object({
   success: z.literal(false),
   error: z.object({
-    message: z.string(),
-    cause: z.union([z.string(), z.array(z.any())]).optional(),
+    type: z.string(),
+    message: z.union([z.string(), z.array(z.any())]).optional(),
   }),
 });
 

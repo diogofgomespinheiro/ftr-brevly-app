@@ -49,7 +49,7 @@ export class CreateLinkUseCase
       if (existingLink) {
         return Result.fail(
           new ConflictError(
-            `Link with short code ${shortCode.getValue().value} already exists`
+            `Link with short code "${shortCode.getValue().value}" already exists`
           )
         );
       }

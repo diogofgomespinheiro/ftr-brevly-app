@@ -44,7 +44,11 @@ export class FindLinkByShortCodeUseCase
         shortCode.getValue().value
       );
       if (!existingLink) {
-        return Result.fail(new ResourceNotFoundError());
+        return Result.fail(
+          new ResourceNotFoundError(
+            `Link with short code "${input.shortCode}" does not exist`
+          )
+        );
       }
 
       return Result.ok({ link: existingLink });

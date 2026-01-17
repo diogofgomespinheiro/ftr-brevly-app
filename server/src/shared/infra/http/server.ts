@@ -52,8 +52,8 @@ server.setErrorHandler(async (error, _, reply) => {
     return reply.status(400).send({
       success: false,
       error: {
-        message: 'Schema validation error',
-        cause: JSON.stringify(error.validation),
+        type: 'Schema validation error',
+        message: JSON.stringify(error.validation),
       },
     });
   }
@@ -62,8 +62,8 @@ server.setErrorHandler(async (error, _, reply) => {
     return reply.status(500).send({
       success: false,
       error: {
-        message: 'Internal Server Error',
-        cause: error.cause.issues,
+        type: 'Internal Server Error',
+        message: error.cause.issues,
       },
     });
   }
@@ -71,8 +71,8 @@ server.setErrorHandler(async (error, _, reply) => {
   return reply.status(500).send({
     success: false,
     error: {
-      message: 'Internal Server Error',
-      cause: JSON.stringify(error),
+      type: 'Internal Server Error',
+      message: JSON.stringify(error),
     },
   });
 });
