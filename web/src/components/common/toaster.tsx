@@ -3,7 +3,7 @@ import { Toaster as SonnerToaster } from 'sonner';
 export function Toaster() {
   return (
     <SonnerToaster
-      position="bottom-center"
+      position="bottom-right"
       toastOptions={{
         style: {
           background: 'var(--color-gray-100)',
