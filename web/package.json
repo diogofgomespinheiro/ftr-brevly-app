@@ -7,8 +7,7 @@
     "dev": "vite --port 3000",
     "build": "tsc -b && vite build",
     "style:check": "biome check ./src --write",
-    "preview": "vite preview",
-    "start": "vite"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
