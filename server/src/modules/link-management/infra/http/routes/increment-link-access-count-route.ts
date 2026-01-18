@@ -11,7 +11,7 @@ import {
 
 export const incrementLinkAccessCountRoute: FastifyPluginAsyncZod =
   async server => {
-    server.put(
+    server.patch(
       '/links/:short_code/increment',
       {
         schema: {

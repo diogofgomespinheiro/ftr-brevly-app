@@ -1,8 +1,8 @@
-import type { UseCaseError } from './use-case-error'
+import type { UseCaseError } from './use-case-error';
 
 export class ResourceNotFoundError extends Error implements UseCaseError {
   constructor(cause?: string) {
-    super('Resource not found', { cause })
-    this.name = 'ResourceNotFoundError'
+    super('RESOURCE_NOT_FOUND_ERROR', { cause });
+    this.name = 'ResourceNotFoundError';
   }
 }

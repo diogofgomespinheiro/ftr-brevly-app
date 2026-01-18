@@ -1,4 +1,4 @@
-import { asc, eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 
 import type { LinksRepository } from '@/link-management/application/repositories';
 import type { Link } from '@/link-management/domain/entities';
@@ -35,7 +35,11 @@ export class DrizzleLinksRepository implements LinksRepository {
   }
 
   async findMany(): Promise<Link[]> {
-    const result = await db.select().from(schema.linksTable);
+    const result = await db
+      .select()
+      .from(schema.linksTable)
+      .orderBy(desc(schema.linksTable.id));
+
     return result.map(item => DrizzleLinksMapper.toDomain(item));
   }
 
@@ -56,7 +60,7 @@ export class DrizzleLinksRepository implements LinksRepository {
     const { sql, params } = db
       .select()
       .from(schema.linksTable)
-      .orderBy(asc(schema.linksTable.id))
+      .orderBy(desc(schema.linksTable.id))
       .toSQL();
 
     const cursor = pg

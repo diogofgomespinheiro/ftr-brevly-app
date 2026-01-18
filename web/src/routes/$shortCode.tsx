@@ -1,30 +1,22 @@
-import { queryOptions, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useEffectEvent, useRef } from 'react';
-import {
-  fetchLinkByShortCode,
-  incrementLinkAccessCount,
-} from '@/api/links-api';
-import { Card, NotFoundComponent } from '@/components/common';
 
-const fetchLinkByShortCodeOptions = (shortCode: string) =>
-  queryOptions({
-    queryKey: [`${shortCode}-link`],
-    queryFn: () => fetchLinkByShortCode(shortCode),
-  });
+import { incrementLinkAccessCount } from '@/api/links-api';
+import { Card, NotFoundComponent } from '@/components/common';
+import { linkByShortCodeQueryOptions, useLinkByShortCodeQuery } from '@/hooks';
 
 export const Route = createFileRoute('/$shortCode')({
   component: RouteComponent,
   errorComponent: NotFoundComponent,
   loader: async ({ context: { queryClient }, params: { shortCode } }) => {
-    await queryClient.ensureQueryData(fetchLinkByShortCodeOptions(shortCode));
+    await queryClient.ensureQueryData(linkByShortCodeQueryOptions(shortCode));
   },
 });
 
 function RouteComponent() {
   const hasRedirected = useRef(false);
   const shortCode = Route.useParams({ select: data => data.shortCode });
-  const { data } = useSuspenseQuery(fetchLinkByShortCodeOptions(shortCode));
+  const { data } = useLinkByShortCodeQuery(shortCode);
   const isSuccess = data.success;
 
   const redirect = useEffectEvent(() => {

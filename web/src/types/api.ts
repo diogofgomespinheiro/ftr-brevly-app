@@ -1,9 +1,9 @@
-import {
-  type AxiosError,
-  type AxiosInstance,
-  type AxiosPromise,
-  type AxiosRequestConfig,
-  type Canceler,
+import type {
+  AxiosError,
+  AxiosInstance,
+  AxiosPromise,
+  AxiosRequestConfig,
+  Canceler,
 } from 'axios';
 
 export type { Canceler };
@@ -33,13 +33,12 @@ export type ApiError = AxiosError & {
 export type ApiErrorResponse = {
   success: false;
   error: {
-    status: 400 | 404 | 409 | 500;
     type: string;
     message: string;
   };
 };
 
-export type ApiSuccessResponse<T = {}> = {
+export type ApiSuccessResponse<T = object> = {
   success: true;
   result: T;
 };

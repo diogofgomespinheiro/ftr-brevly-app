@@ -3,13 +3,14 @@ import axios, {
   type AxiosPromise,
   type Cancel,
 } from 'axios';
+
 import type {
   ApiError,
   ApiExecutor,
   ApiExecutorArgs,
   ApiRequestConfig,
   WithAbortFn,
-} from './api.types';
+} from '@/types';
 
 const axiosParams = {
   baseURL: import.meta.env.VITE_API_BASE_URL,

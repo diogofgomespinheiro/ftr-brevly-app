@@ -24,7 +24,10 @@ import { env } from '@/shared/config/env';
 const server = fastify();
 server.setValidatorCompiler(validatorCompiler);
 server.setSerializerCompiler(serializerCompiler);
-server.register(fastifyCors, { origin: '*' });
+server.register(fastifyCors, {
+  origin: '*',
+  methods: ['GET', 'PUT', 'PATCH', 'POST', 'DELETE'],
+});
 server.register(fastifyMultipart);
 server.register(fastifySwagger, {
   openapi: {
@@ -52,7 +55,7 @@ server.setErrorHandler(async (error, _, reply) => {
     return reply.status(400).send({
       success: false,
       error: {
-        type: 'Schema validation error',
+        type: 'SCHEMA_VALIDATION_ERROR',
         message: JSON.stringify(error.validation),
       },
     });
@@ -62,7 +65,7 @@ server.setErrorHandler(async (error, _, reply) => {
     return reply.status(500).send({
       success: false,
       error: {
-        type: 'Internal Server Error',
+        type: 'UNEXPECTED_ERROR',
         message: error.cause.issues,
       },
     });
@@ -71,7 +74,7 @@ server.setErrorHandler(async (error, _, reply) => {
   return reply.status(500).send({
     success: false,
     error: {
-      type: 'Internal Server Error',
+      type: 'UNEXPECTED_ERROR',
       message: JSON.stringify(error),
     },
   });

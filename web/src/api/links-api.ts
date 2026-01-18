@@ -1,18 +1,16 @@
+import type {
+  ApiErrorResponse,
+  ApiSuccessResponse,
+  CreateLinkDTO,
+  Link,
+} from '@/types';
 import api from './api';
-import type { ApiErrorResponse, ApiSuccessResponse } from './api.types';
-
-export type Link = {
-  id: string;
-  original_url: string;
-  short_code: string;
-  access_count: number;
-  created_at: string;
-  updated_at?: string;
-};
 
 export type FetchLinksResponse = ApiSuccessResponse<{ links: Link[] }>;
 export type FetchLinkByShortCodeResponse = ApiSuccessResponse<{ link: Link }>;
 export type ExportLinksResponse = ApiSuccessResponse<{ report_url: string }>;
+export type CreateLinkResponse = ApiSuccessResponse<{ link: Link }>;
+export type DeleteLinkResponse = ApiSuccessResponse<object>;
 
 export const fetchLinks = () =>
   api
@@ -21,7 +19,7 @@ export const fetchLinks = () =>
     .catch(error => {
       return {
         success: false,
-        error: { ...error.response.data.error, status: error.response.status },
+        error: error.response?.data?.error,
       } as ApiErrorResponse;
     });
 
@@ -32,7 +30,7 @@ export const fetchLinkByShortCode = (shortCode: string) =>
     .catch(error => {
       return {
         success: false,
-        error: { ...error.response.data.error, status: error.response.status },
+        error: error.response?.data?.error,
       } as ApiErrorResponse;
     });
 
@@ -45,7 +43,7 @@ export const incrementLinkAccessCount = (shortCode: string) =>
     .catch(error => {
       return {
         success: false,
-        error: { ...error.response.data.error, status: error.response.status },
+        error: error.response?.data?.error,
       } as ApiErrorResponse;
     });
 
@@ -56,7 +54,29 @@ export const exportLinks = () =>
     .catch(error => {
       return {
         success: false,
-        error: { ...error.response.data.error, status: error.response.status },
+        error: error.response?.data?.error,
+      } as ApiErrorResponse;
+    });
+
+export const createLink = (data: CreateLinkDTO) =>
+  api
+    .post<CreateLinkResponse>('/links', data)
+    .then(res => res.data)
+    .catch(error => {
+      return {
+        success: false,
+        error: error.response?.data?.error,
+      } as ApiErrorResponse;
+    });
+
+export const deleteLink = (shortCode: string) =>
+  api
+    .delete<DeleteLinkResponse>(`/links/${shortCode}`)
+    .then(res => res.data)
+    .catch(error => {
+      return {
+        success: false,
+        error: error.response?.data?.error,
       } as ApiErrorResponse;
     });
 
@@ -86,7 +106,7 @@ export const fetchLinksMock = (
       if (shouldFail) {
         resolve({
           success: false,
-          error: { message: 'Mock error', type: 'Mock error', status: 500 },
+          error: { message: 'Mock error', type: 'Mock error' },
         });
       } else {
         resolve({

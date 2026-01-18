@@ -1,48 +1,67 @@
-import {
-  CopyIcon,
-  DownloadSimpleIcon,
-  SpinnerIcon,
-  TrashIcon,
-} from '@phosphor-icons/react';
-import { queryOptions, useMutation, useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { exportLinks, fetchLinks, fetchLinksMock } from '@/api/links-api';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
-import { Button, Card } from '@/components/common';
-import { EmptyLinksSection, LoadingSection } from '@/components/home';
-
-const fetchLinksQueryOptions = queryOptions({
-  queryKey: ['links'],
-  queryFn: () => fetchLinksMock(10000),
-});
+import { Card } from '@/components/common';
+import { CreateLinkForm, LinksHeader, LinksList } from '@/components/home';
+import {
+  useDeleteLinkMutation,
+  useExportLinksMutation,
+  useLinksQuery,
+} from '@/hooks';
 
 export const Route = createFileRoute('/')({
   component: HomeComponent,
 });
 
 function HomeComponent() {
-  const { data, isLoading } = useQuery(fetchLinksQueryOptions);
-  const exportLinksMutation = useMutation({
-    mutationFn: () => exportLinks(),
-  });
+  const [deletingShortCodes, setDeletingShortCodes] = useState<string[] | []>(
+    []
+  );
 
-  const isSuccess = data?.success;
-  const hasAvailableLinks =
-    !isLoading && isSuccess && data.result.links.length > 0;
-  const isEmpty = !isLoading && isSuccess && data.result.links.length == 0;
+  const { data, isLoading } = useLinksQuery();
+  const exportLinksMutation = useExportLinksMutation();
+  const deleteLinkMutation = useDeleteLinkMutation();
 
-  function formatUrl(url: string, maxLength = 35): string {
-    const formattedUrl = url.replace('http://', '').replace('https://', '');
-    if (formattedUrl.length <= maxLength) return formattedUrl;
-    return `${formattedUrl.slice(0, maxLength)}...`;
-  }
+  const isSuccess = data?.success === true;
+  const links = isSuccess ? data.result.links : [];
+  const hasAvailableLinks = !isLoading && isSuccess && links.length > 0;
+  const isEmpty = !isLoading && isSuccess && links.length === 0;
+  const isError = !isLoading && !isSuccess;
 
-  async function generateCsv() {
+  async function handleExport() {
     if (!hasAvailableLinks) return;
     const result = await exportLinksMutation.mutateAsync();
 
-    if (!result.success) return;
+    if (!result.success) {
+      toast.error('Erro ao exportar links');
+      return;
+    }
     window.open(result.result.report_url, '_blank');
+  }
+
+  function handleCopyLink(success: boolean) {
+    if (success) {
+      toast.success('Link copiado!');
+    } else {
+      toast.error('Erro ao copiar link');
+    }
+  }
+
+  async function handleDeleteLink(shortCode: string) {
+    setDeletingShortCodes(prevState => {
+      return [...prevState, shortCode];
+    });
+    const result = await deleteLinkMutation.mutateAsync(shortCode);
+    setDeletingShortCodes(prevState => {
+      return prevState.filter(item => item !== shortCode);
+    });
+
+    if (result.success) {
+      toast.success('Link apagado!');
+    } else {
+      toast.error('Erro ao apagar link');
+    }
   }
 
   return (
@@ -54,13 +73,10 @@ function HomeComponent() {
         <Card className="flex-1 sm:max-w-96 h-fit">
           <div className="flex flex-col gap-5 sm:gap-6">
             <h2 className="text-lg text-gray-600">Novo Link</h2>
-            <div></div>
-            <Button className="w-full" disabled>
-              Salvar link
-            </Button>
+            <CreateLinkForm />
           </div>
         </Card>
-        <Card className="flex-1 relative overflow-hidden">
+        <Card className="flex-1 relative overflow-hidden h-fit">
           {isLoading && (
             <div className="absolute top-0 left-0 right-0 h-0.5 bg-gray-200 overflow-hidden">
               <div
@@ -72,77 +88,21 @@ function HomeComponent() {
             </div>
           )}
           <div>
-            <div className="flex justify-between">
-              <h2 className="text-lg text-gray-600">Meus links</h2>
-              <Button
-                color="secondary"
-                size="icon"
-                disabled={!hasAvailableLinks || exportLinksMutation.isPending}
-                onClick={generateCsv}
-              >
-                {exportLinksMutation.isPending && (
-                  <SpinnerIcon
-                    size={16}
-                    className="animate-spin text-gray-400"
-                    style={{ animationDuration: '1.8s' }}
-                  />
-                )}
-                {!exportLinksMutation.isPending && (
-                  <DownloadSimpleIcon className="text-gray-600" size={16} />
-                )}
-                <span>Baixar CSV</span>
-              </Button>
-            </div>
+            <LinksHeader
+              onExport={handleExport}
+              isExporting={exportLinksMutation.isPending}
+              hasLinks={hasAvailableLinks}
+            />
             <div className="flex flex-col pt-3 sm:pt-4 gap-3 sm:gap-4">
-              {isLoading && <LoadingSection />}
-              {isEmpty && <EmptyLinksSection />}
-              {hasAvailableLinks &&
-                data.result.links.map(link => (
-                  <div
-                    key={link.id}
-                    className="flex justify-between pt-3 sm:pt-4 border-t border-gray-200"
-                  >
-                    <div className="flex flex-col gap-1">
-                      <div
-                        className="text-base text-blue-base cursor-pointer"
-                        onClick={() =>
-                          window.open(`/${link.short_code}`, '_blank')
-                        }
-                        title={`${window.location.origin}/${link.short_code}`}
-                      >
-                        brev.ly/{link.short_code}
-                      </div>
-                      <div
-                        className="text-sm text-gray-500"
-                        title={link.original_url}
-                      >
-                        {formatUrl(link.original_url)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 sm:gap-5">
-                      <div className="text-sm text-gray-500">
-                        {link.access_count} acessos
-                      </div>
-                      <div className="flex gap-1">
-                        <Button
-                          color="secondary"
-                          size="icon"
-                          title="Copiar link"
-                          onClick={() =>
-                            navigator.clipboard.writeText(
-                              `${window.location.origin}/${link.short_code}`
-                            )
-                          }
-                        >
-                          <CopyIcon className="text-gray-600" size={16} />
-                        </Button>
-                        <Button color="secondary" size="icon">
-                          <TrashIcon className="text-gray-600" size={16} />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <LinksList
+                links={links}
+                isLoading={isLoading}
+                isEmpty={isEmpty}
+                isError={isError}
+                onCopyLink={handleCopyLink}
+                onDeleteLink={handleDeleteLink}
+                deletingShortCodes={deletingShortCodes}
+              />
             </div>
           </div>
         </Card>

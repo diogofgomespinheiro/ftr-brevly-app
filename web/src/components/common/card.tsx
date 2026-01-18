@@ -1,7 +1,7 @@
 import { tv, type VariantProps } from 'tailwind-variants/lite';
 
 const cardVariants = tv({
-  base: 'bg-white rounded-lg',
+  base: 'bg-gray-100 rounded-lg',
   variants: {
     size: {
       default: 'p-6 sm:p-8',
