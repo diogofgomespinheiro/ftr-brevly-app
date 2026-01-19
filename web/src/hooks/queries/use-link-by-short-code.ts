@@ -1,4 +1,4 @@
-import { queryOptions, useSuspenseQuery } from '@tanstack/react-query';
+import { queryOptions, useQuery } from '@tanstack/react-query';
 import { fetchLinkByShortCode } from '@/api/links-api';
 
 export const linkByShortCodeQueryOptions = (shortCode: string) =>
@@ -8,5 +8,5 @@ export const linkByShortCodeQueryOptions = (shortCode: string) =>
   });
 
 export function useLinkByShortCodeQuery(shortCode: string) {
-  return useSuspenseQuery(linkByShortCodeQueryOptions(shortCode));
+  return useQuery(linkByShortCodeQueryOptions(shortCode));
 }

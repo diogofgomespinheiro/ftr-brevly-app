@@ -3,21 +3,17 @@ import { useEffect, useEffectEvent, useRef } from 'react';
 
 import { incrementLinkAccessCount } from '@/api/links-api';
 import { Card, NotFoundComponent } from '@/components/common';
-import { linkByShortCodeQueryOptions, useLinkByShortCodeQuery } from '@/hooks';
+import { useLinkByShortCodeQuery } from '@/hooks';
 
 export const Route = createFileRoute('/$shortCode')({
   component: RouteComponent,
-  errorComponent: NotFoundComponent,
-  loader: async ({ context: { queryClient }, params: { shortCode } }) => {
-    await queryClient.ensureQueryData(linkByShortCodeQueryOptions(shortCode));
-  },
 });
 
 function RouteComponent() {
   const hasRedirected = useRef(false);
   const shortCode = Route.useParams({ select: data => data.shortCode });
   const { data } = useLinkByShortCodeQuery(shortCode);
-  const isSuccess = data.success;
+  const isSuccess = data?.success;
 
   const redirect = useEffectEvent(() => {
     if (!isSuccess || !data.result?.link?.original_url || hasRedirected.current)
